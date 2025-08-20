@@ -7,9 +7,18 @@ from openai import OpenAI
 
 # 从prompts.py文件中导入我们设计的Prompt函数
 from prompts import (
-    create_social_media_prompt,
+    # 社交媒体 (4种)
+    create_social_media_prompt_review,
+    create_social_media_prompt_educational,
+    create_social_media_prompt_myth_busting,
+    create_social_media_prompt_storytelling,
+    # 电商 (1种)
     create_ecommerce_prompt,
-    create_paid_ad_prompt
+    # 付费广告 (4种)
+    create_paid_ad_prompt_cta,
+    create_paid_ad_prompt_pas,
+    create_paid_ad_prompt_bab,
+    create_paid_ad_prompt_fab
 )
 
 # --- 1. 配置 ---
@@ -22,36 +31,36 @@ SILICONFLOW_API_KEY = "sk-qadtenuyxrfcbbsrwlmevvozivtwptlefipuqnoirdynnovz"
 # 1. 首先安装依赖：pip install pandas tqdm openai
 # 2. 确保 data/products.csv 文件存在
 # 3. 运行 products_process.py 生成 products_processed.csv
-# 4. 运行此脚本生成数据集 
+# 4. 运行此脚本生成数据集
 
 # 输入和输出文件名
 PRODUCT_CSV_PATH = "data/products_processed.csv"
 OUTPUT_JSONL_PATH = "data/sft_dataset_deepseek.jsonl"
 
 # 硅基流动平台上的模型名称
-MODEL_NAME = "deepseek-ai/DeepSeek-V3" 
+MODEL_NAME = "deepseek-ai/DeepSeek-V3"
 
 # --- 2. 主执行逻辑 ---
 
 def check_dependencies():
     """检查必要的依赖包是否已安装"""
     missing_packages = []
-    
+
     try:
         import pandas
     except ImportError:
         missing_packages.append("pandas")
-    
+
     try:
         import tqdm
     except ImportError:
         missing_packages.append("tqdm")
-    
+
     try:
         import openai
     except ImportError:
         missing_packages.append("openai")
-    
+
     if missing_packages:
         print("错误：缺少以下依赖包：")
         for package in missing_packages:
@@ -59,13 +68,13 @@ def check_dependencies():
         print("\n请运行以下命令安装：")
         print(f"pip install {' '.join(missing_packages)}")
         return False
-    
+
     return True
 
 def main():
     """主函数，执行数据集生成流程"""
     print("--- SFT数据集生成脚本启动 (使用硅基流动API) ---")
-    
+
     # 检查依赖
     if not check_dependencies():
         return
@@ -91,7 +100,7 @@ def main():
         print(f"当前工作目录：{os.getcwd()}")
         print(f"请确保产品文件存在，或者先运行 products_process.py 处理数据")
         return
-    
+
     # 确保输出目录存在
     output_dir = os.path.dirname(OUTPUT_JSONL_PATH)
     if output_dir and not os.path.exists(output_dir):
@@ -107,13 +116,19 @@ def main():
         return
 
     sft_dataset = []
-    
+
     prompt_functions = {
-        "social_media": create_social_media_prompt,
-        "ecommerce": create_ecommerce_prompt,
-        "paid_ad": create_paid_ad_prompt,
+        "social_media_review": create_social_media_prompt_review,
+        "social_media_educational": create_social_media_prompt_educational,
+        "social_media_myth_busting": create_social_media_prompt_myth_busting,
+        "social_media_storytelling": create_social_media_prompt_storytelling,
+        "ecommerce_long_form": create_ecommerce_prompt,
+        "paid_ad_cta": create_paid_ad_prompt_cta,
+        "paid_ad_pas": create_paid_ad_prompt_pas,
+        "paid_ad_bab": create_paid_ad_prompt_bab,
+        "paid_ad_fab": create_paid_ad_prompt_fab
     }
-    
+
     total_tasks = len(df) * len(prompt_functions)
     with tqdm(total=total_tasks, desc="生成SFT数据") as pbar:
         for index, row in df.iterrows():
@@ -122,7 +137,7 @@ def main():
 
             for task_type, create_prompt_func in prompt_functions.items():
                 prompt = create_prompt_func(product_info_str)
-                
+
                 try:
                     # 调用硅基流动API
                     response = client.chat.completions.create(
@@ -132,7 +147,7 @@ def main():
                         temperature=0.7,
                         max_tokens=1024,
                     )
-                    
+
                     generated_data = json.loads(response.choices[0].message.content)
                     output_text = generated_data.get("output", "").strip()
 
@@ -143,12 +158,12 @@ def main():
                             "output": output_text
                         }
                         sft_dataset.append(sft_record)
-                    
+
                     time.sleep(1)
 
                 except Exception as e:
                     print(f"\n处理产品 '{product_info_dict.get('product_name')}' (任务: {task_type}) 时出错: {e}")
-                
+
                 pbar.update(1)
 
     # 保存最终数据集

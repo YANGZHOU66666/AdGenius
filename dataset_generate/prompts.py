@@ -17,7 +17,7 @@ BRAND_GUIDE = """
 
 # --- 元提示 (Meta-Prompts) 设计 ---
 
-def create_social_media_prompt(product_info_str: str) -> str:
+def create_social_media_prompt_review(product_info_str: str) -> str:
     """为社交媒体（小红书）文案设计Prompt"""
     return f"""
 # 角色
@@ -40,6 +40,83 @@ def create_social_media_prompt(product_info_str: str) -> str:
 # 输出格式
 请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
 示例: {{"output": "敏肌请进✍️ 这支洁面我能用到天荒地老！..."}}
+"""
+
+def create_social_media_prompt_educational(product_info_str: str) -> str:
+    """
+    为社交媒体（小红书）文案设计Prompt - 侧重“科普教育”和“成分分析”。
+    """
+    return f"""
+# 角色
+你是一位名叫“言之”的护肤科普博主，擅长用通俗易懂的语言讲解硬核护肤知识，帮助粉丝成为更聪明的消费者。
+
+# 任务
+请撰写一篇小红书笔记，以“护肤小课堂”的形式，重点科普产品中的一个核心成分（例如：视黄醇、神经酰胺等）。在科普结束后，自然地引出“原素方程”的这款产品作为优秀实践案例。
+
+{BRAND_GUIDE}
+
+# 风格指南
+- **结构:** 开头提出一个常见护肤问题 -> 深入浅出地科普核心成分如何解决该问题 -> 最后引出产品，并点明其配方优势（如浓度、复配等）。
+- **口吻:** 理性、客观，像一位知识渊博的学姐在分享笔记，用数据和原理说话。
+- **元素:** 可以使用emoji来辅助排版和划分段落，文末附上科普相关的话题标签。
+
+# 产品信息
+{product_info_str}
+
+# 输出格式
+请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
+"""
+
+def create_social_media_prompt_myth_busting(product_info_str: str) -> str:
+    """
+    为社交媒体（小红书）文案设计Prompt - 侧重“破除迷思”和“引发讨论”。
+    """
+    return f"""
+# 角色
+你是一位敢于说真话的护肤博主，致力于戳穿常见的护肤误区和智商税。
+
+# 任务
+请撰写一篇小红书笔记，开头直接挑战一个常见的护肤误区（例如：“高浓度就一定好吗？”或“物理防晒一定比化学防晒更安全吗？”），然后解释为什么这是错的，并引出“原素方程”的这款产品作为更科学、更合理的解决方案。
+
+{BRAND_GUIDE}
+
+# 风格指南
+- **结构:** 提出一个争议性观点 -> 摆出科学依据进行论证 -> 引出产品作为正面例子。
+- **口吻:** 犀利、直接，能引发用户的思考和讨论。
+- **元素:** 多使用设问和反问，增强互动感。文末附上能引发讨论的话题标签。
+
+# 产品信息
+{product_info_str}
+
+# 输出格式
+请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
+"""
+
+def create_social_media_prompt_storytelling(product_info_str: str) -> str:
+    """
+    (新版本)
+    为社交媒体（小红书）文案设计Prompt - 侧重“场景故事”和“情感连接”。
+    """
+    return f"""
+# 角色
+你是一位热爱生活的用户，喜欢用文字记录生活中的小确幸和真实感受。
+
+# 任务
+请撰写一篇小红书笔记，讲述一个你与产品之间发生的故事。将产品融入到一个真实、具体的生活场景中，例如“那次重要的面试前，是它拯救了我的熬夜脸”或“连续加班一周，全靠它稳住我的皮肤状态”。
+
+{BRAND_GUIDE}
+
+# 风格指南
+- **结构:** 以一个生活场景或个人困扰作为开头 -> 讲述使用产品的过程和感受 -> 结尾分享这个经历带来的积极变化或感悟。
+- **口吻:** 真诚、有温度，像在分享自己的日记，能引发读者的情感共鸣。
+- **元素:** 重点在于故事的细节和情感的流露，emoji和话题标签作为辅助。
+- **禁止:** 避免像产品说明书一样罗列成分。
+
+# 产品信息
+{product_info_str}
+
+# 输出格式
+请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
 """
 
 def create_ecommerce_prompt(product_info_str: str) -> str:
@@ -65,7 +142,7 @@ def create_ecommerce_prompt(product_info_str: str) -> str:
 请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
 """
 
-def create_paid_ad_prompt(product_info_str: str) -> str:
+def create_paid_ad_prompt_cta(product_info_str: str) -> str:
     """为付费广告（信息流）文案设计Prompt"""
     return f"""
 # 角色
@@ -82,6 +159,78 @@ def create_paid_ad_prompt(product_info_str: str) -> str:
 - **核心利益点:** 用一句话说清楚产品能带来的最大好处。
 - **行动号召:** 必须清晰、直接，引导用户点击。
 - **长度:** 整体文案控制在100字以内。
+
+# 产品信息
+{product_info_str}
+
+# 输出格式
+请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
+"""
+
+def create_paid_ad_prompt_pas(product_info_str: str) -> str:
+    """(新增) 为付费广告设计Prompt - 侧重“痛点-放大-解决” (Problem-Agitate-Solve)"""
+    return f"""
+# 角色
+你是一位顶尖的广告优化师，擅长通过激发用户共鸣来驱动转化。
+
+# 任务
+请为以下产品撰写一条信息流广告文案，严格遵循【痛点-放大-解决 (Problem-Agitate-Solve)】框架。
+
+{BRAND_GUIDE}
+
+# 风格指南
+- **痛点 (Problem):** 用一个问题直接点出目标用户的烦恼。
+- **放大 (Agitate):** 描述这个烦恼带来的更多负面感受或后果，加深用户的焦虑感。
+- **解决 (Solve):** 自然地引出“原素方程”的产品作为最终解决方案，并给出明确的行动号召。
+- **长度:** 整体文案控制在120字以内。
+
+# 产品信息
+{product_info_str}
+
+# 输出格式
+请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
+"""
+
+def create_paid_ad_prompt_bab(product_info_str: str) -> str:
+    """(新增) 为付费广告设计Prompt - 侧重“效果对比” (Before-After-Bridge)"""
+    return f"""
+# 角色
+你是一位顶尖的广告优化师，擅长为用户描绘美好的愿景。
+
+# 任务
+请为以下产品撰写一条信息流广告文案，严格遵循【之前-之后-桥梁 (Before-After-Bridge)】框架。
+
+{BRAND_GUIDE}
+
+# 风格指南
+- **之前 (Before):** 简要描述一个用户当前不理想的状态或感受。
+- **之后 (After):** 描绘一个使用了产品后能够达到的、令人向往的理想状态。
+- **桥梁 (Bridge):** 点明“原素方程”的产品就是实现这个转变的关键，并给出明确的行动号召。
+- **长度:** 整体文案控制在100字以内。
+
+# 产品信息
+{product_info_str}
+
+# 输出格式
+请严格以JSON格式返回，只包含一个键 "output"，值为生成的文案字符串。
+"""
+
+def create_paid_ad_prompt_fab(product_info_str: str) -> str:
+    """(新增) 为付费广告设计Prompt - 侧重“卖点深挖” (Feature-Advantage-Benefit)"""
+    return f"""
+# 角色
+你是一位顶尖的广告优化师，也是一位“成分党”专家，擅长用理性的方式说服用户。
+
+# 任务
+请为以下产品撰写一条信息流广告文案，严格遵循【特点-优势-好处 (Feature-Advantage-Benefit)】框架。
+
+{BRAND_GUIDE}
+
+# 风格指南
+- **特点 (Feature):** 说明产品有什么客观特点 (例如：含有30%玻色因)。
+- **优势 (Advantage):** 说明这个特点意味着什么 (例如：这能高效促进胶原蛋白生成)。
+- **好处 (Benefit):** 最终这个优势能给用户带来什么实际好处 (例如：让你的苹果肌更饱满)，并给出明确的行动号召。
+- **长度:** 整体文案控制在120字以内。
 
 # 产品信息
 {product_info_str}
