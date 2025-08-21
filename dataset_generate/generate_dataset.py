@@ -6,7 +6,7 @@ import os
 from openai import OpenAI
 
 # 从prompts.py文件中导入我们设计的Prompt函数
-from prompts import (
+from dataset_generate.sft_gen_prompts import (
     # 社交媒体 (4种)
     create_social_media_prompt_review,
     create_social_media_prompt_educational,

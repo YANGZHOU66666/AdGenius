@@ -1,5 +1,3 @@
-# prompts.py
-
 # --- 品牌指南 ---
 # 这是嵌入到每个Prompt中的品牌指南，确保AI遵循统一风格
 BRAND_GUIDE = """
