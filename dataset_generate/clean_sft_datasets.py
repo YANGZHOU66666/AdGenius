@@ -14,8 +14,8 @@ from sft_clean_prompts import create_clean_prompt
 SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"
 API_BASE_URL = "https://api.siliconflow.cn/v1"
-INPUT_JSONL_PATH = "data/sft_dataset_deepseek.jsonl"
-OUTPUT_JSONL_PATH = "data/sft_dataset_cleaned.jsonl"
+INPUT_JSONL_PATH = "data/val_dataset_deepseek.jsonl"
+OUTPUT_JSONL_PATH = "data/val_dataset_cleaned.jsonl"
 
 # --- 主执行逻辑 ---
 

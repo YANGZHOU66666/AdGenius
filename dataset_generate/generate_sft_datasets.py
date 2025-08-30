@@ -4,9 +4,12 @@ import time
 from tqdm import tqdm
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 从prompts.py文件中导入我们设计的Prompt函数
-from dataset_generate.sft_gen_prompts import (
+from sft_gen_prompts import (
     # 社交媒体 (4种)
     create_social_media_prompt_review,
     create_social_media_prompt_educational,
@@ -22,10 +25,7 @@ from dataset_generate.sft_gen_prompts import (
 )
 
 # --- 1. 配置 ---
-# 在这里填入您的硅基流动API密钥
-# 强烈建议使用环境变量以保证安全: api_key = os.getenv("SILICONFLOW_API_KEY")
-# 如果直接填入，请注意不要泄露您的密钥:
-SILICONFLOW_API_KEY = "sk-qadtenuyxrfcbbsrwlmevvozivtwptlefipuqnoirdynnovz"
+SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 
 # --- 使用说明 ---
 # 1. 首先安装依赖：pip install pandas tqdm openai
@@ -34,8 +34,8 @@ SILICONFLOW_API_KEY = "sk-qadtenuyxrfcbbsrwlmevvozivtwptlefipuqnoirdynnovz"
 # 4. 运行此脚本生成数据集
 
 # 输入和输出文件名
-PRODUCT_CSV_PATH = "data/products_processed.csv"
-OUTPUT_JSONL_PATH = "data/sft_dataset_deepseek.jsonl"
+PRODUCT_CSV_PATH = "data/val_products_processed.csv"
+OUTPUT_JSONL_PATH = "data/val_dataset_deepseek.jsonl"
 
 # 硅基流动平台上的模型名称
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"

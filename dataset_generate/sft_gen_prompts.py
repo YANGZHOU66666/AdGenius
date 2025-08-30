@@ -92,7 +92,6 @@ def create_social_media_prompt_myth_busting(product_info_str: str) -> str:
 
 def create_social_media_prompt_storytelling(product_info_str: str) -> str:
     """
-    (新版本)
     为社交媒体（小红书）文案设计Prompt - 侧重“场景故事”和“情感连接”。
     """
     return f"""
@@ -166,7 +165,7 @@ def create_paid_ad_prompt_cta(product_info_str: str) -> str:
 """
 
 def create_paid_ad_prompt_pas(product_info_str: str) -> str:
-    """(新增) 为付费广告设计Prompt - 侧重“痛点-放大-解决” (Problem-Agitate-Solve)"""
+    """为付费广告设计Prompt - 侧重“痛点-放大-解决” (Problem-Agitate-Solve)"""
     return f"""
 # 角色
 你是一位顶尖的广告优化师，擅长通过激发用户共鸣来驱动转化。

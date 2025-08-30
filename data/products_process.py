@@ -6,7 +6,7 @@ def process_products_csv():
     读取products.csv文件，将字段中的|和空格替换为逗号
     """
     # 文件路径
-    csv_file = './data/products.csv'
+    csv_file = './data/val_products.csv'
     
     # 检查文件是否存在
     if not os.path.exists(csv_file):
@@ -48,7 +48,7 @@ def process_products_csv():
             print(df['target_audience'].head(3))
         
         # 保存处理后的文件
-        output_file = './data/products_processed.csv'
+        output_file = './data/val_products_processed.csv'
         df.to_csv(output_file, index=False, encoding='utf-8')
         
         print(f"\n处理完成！")
