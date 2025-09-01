@@ -138,8 +138,8 @@ def main():
         return
     
     # 输入和输出文件路径
-    input_file = "data/sft_dataset_cleaned.jsonl"
-    output_file = "data/sft_dataset_cleaned_cta.jsonl"
+    input_file = "data/val_dataset_cleaned.jsonl"
+    output_file = "data/val_dataset_cleaned_cta.jsonl"
     
     # 检查输入文件是否存在
     if not os.path.exists(input_file):
