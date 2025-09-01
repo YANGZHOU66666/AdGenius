@@ -110,6 +110,7 @@ def save_final_data(final_data: List[Dict], output_file: str):
             print(f"第{i+1}条:")
             print(f"  Prompt: {item['prompt'][:100]}...")
             print(f"  Chosen: {item['chosen'][:100]}...")
+            print(f"  Type: {item['type']}")
             print()
         
     except Exception as e:

@@ -9,7 +9,7 @@ def main():
     merged_model_path = "models/qwen2_5-0.5b-instruct-skincare-merged"
     base_model_path = "models/Qwen2.5-0.5B-Instruct"
     test_data_path = "data/val_dataset_final.jsonl"
-    output_csv_path = "data/evaluation_results_final.csv"
+    output_csv_path = "data/evaluation_results_final_2.csv"
 
     generation_config = {
         "max_new_tokens": 512,

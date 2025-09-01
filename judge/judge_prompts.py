@@ -17,7 +17,7 @@ def get_social_media_judge_prompt(product_info: str, copy_A: str, copy_B: str, c
 你是一位资深的社交媒体内容策略师，也是“原素方程 (Elemental Equation)”品牌的特邀内容评测官。你的核心任务是评判AI生成的社交媒体笔记，筛选出最能触动人心、最能代表品牌形象的优质内容。
 
 # 核心任务
-我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的社交媒体笔记。请根据以下【评测标准】，对每一篇笔记进行独立、客观、严格的打分，并最终选出最佳版本。
+我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的社交媒体笔记。请根据以下【评测标准】，对每一篇笔记进行独立、客观、严格的打分。
 
 ---
 ### 【品牌核心信息】
@@ -84,14 +84,105 @@ def get_social_media_judge_prompt(product_info: str, copy_A: str, copy_B: str, c
     "score_value_engagement": <分数>,
     "score_brand_fit": <分数>,
     "critique": "<不超过20字的简短评价>"
-  }},
-  "best_model": "<'A', 'B', 或 'C'>"
+  }}
 }}
 """
 
+# def get_paid_ad_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy_C: str) -> str:
+#     """
+#     生成用于"AI作为裁判"评估付费广告内容的完整Prompt。
+
+#     Args:
+#         product_info (str): 产品的JSON信息字符串。
+#         copy_A (str): 模型A生成的文案。
+#         copy_B (str): 模型B生成的文案。
+#         copy_C (str): 模型C生成的文案。
+
+#     Returns:
+#         str: 一个可以直接发送给大模型API的、格式化好的Prompt字符串。
+#     """
+
+#     return f"""
+# # 角色与背景
+# 你是一位顶尖的增长营销总监 (Head of Growth)，负责"原素方程 (Elemental Equation)"品牌所有付费渠道的广告投放效果。你的评判标准只有一个：哪条文案最有可能带来最高的点击率和转化率。
+
+# # 核心任务
+# 我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的付费广告文案。请根据以下【评测标准】，对每一篇文案进行独立、客观、严格的打分，并最终选出最佳版本。
+
+# ---
+# ### 【品牌核心信息】
+# - **品牌理念:** 精简有效，回归肌肤本源。我们专注于科学配方。
+# - **品牌人格:** 一位冷静、专业、值得信赖的皮肤科医生或科研人员。
+
+# ---
+# ### 【评测标准】
+# 请从以下三个维度，为每篇文案打分（1-5分制，5分为最高分）：
+
+# 1.  **点击吸引力 (Click-Through Appeal):**
+#     * **评测核心：** 这条文案是否能在一瞬间抓住我的眼球，让我停下手中的滑动并产生点击的冲动？
+#     * **5分:** "钩子"极具冲击力，能迅速激发好奇心或击中痛点，让我不点就难受。
+#     * **3分:** 开头中规中矩，有一定吸引力但缺乏亮点，可能会被快速划过。
+#     * **1分:** 开头平淡无奇，广告感过重，会立刻被大脑忽略。
+
+# 2.  **信息传递效率 (Message Efficiency):**
+#     * **评测核心：** 我是否能在扫一眼的时间内（约2-3秒），迅速明白这个广告的核心内容和价值？
+#     * **5分:** 核心利益点极其突出，一目了然，信息密度恰到好处。
+#     * **3分:** 能够理解核心意思，但需要花几秒钟时间阅读和思考。
+#     * **1分:** 信息混乱、冗长或模糊，看完后不清楚产品到底是做什么的。
+
+# 3.  **行动号召有效性 (CTA Effectiveness):**
+#     * **评测核心：** 文案是否清晰、有力地引导我进行下一步动作？
+#     * **5分:** 行动号召（CTA）明确、有说服力，并与文案内容紧密结合，让我有点击的欲望。
+#     * **3分:** 有CTA，但比较弱或模板化（如"了解更多"）。
+#     * **1分:** 没有CTA，或者CTA含糊不清，让用户不知所措。
+
+# ---
+# ### 【待评测内容】
+
+# **# 产品信息:**
+# {product_info}
+
+# **# 模型A文案:**
+# {copy_A}
+
+# **# 模型B文案:**
+# {copy_B}
+
+# **# 模型C文案:**
+# {copy_C}
+
+# ---
+# ### 【输出格式】
+# 请严格以JSON格式返回你的评测结果，不要包含任何额外的解释文字，也不要包含```json等额外标签。JSON结构如下：
+
+# ```json
+# {{
+#   "model_A_evaluation": {{
+#     "score_click_appeal": <分数>,
+#     "score_message_efficiency": <分数>,
+#     "score_cta_effectiveness": <分数>,
+#     "critique": "<不超过20字的简短评价>"
+#   }},
+#   "model_B_evaluation": {{
+#     "score_click_appeal": <分数>,
+#     "score_message_efficiency": <分数>,
+#     "score_cta_effectiveness": <分数>,
+#     "critique": "<不超过20字的简短评价>"
+#   }},
+#   "model_C_evaluation": {{
+#     "score_click_appeal": <分数>,
+#     "score_message_efficiency": <分数>,
+#     "score_cta_effectiveness": <分数>,
+#     "critique": "<不超过20字的简短评价>"
+#   }}
+
+# }}
+# """
+
 def get_paid_ad_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy_C: str) -> str:
     """
-    生成用于“AI作为裁判”评估付费广告内容的完整Prompt。
+    生成用于“AI作为裁判”评估付费广告内容的完整Prompt (优化版)。
+    新增了对“媒介适配性与简洁性”的评测，以解决长文案得分虚高的问题。
 
     Args:
         product_info (str): 产品的JSON信息字符串。
@@ -105,10 +196,11 @@ def get_paid_ad_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy_C
 
     return f"""
 # 角色与背景
-你是一位顶尖的增长营销总监 (Head of Growth)，负责“原素方程 (Elemental Equation)”品牌所有付费渠道的广告投放效果。你的评判标准只有一个：哪条文案最有可能带来最高的点击率和转化率。
+你是一位顶尖的增长营销总监 (Head of Growth)，负责“原素方程”品牌所有付费渠道的广告投放效果。你正在审核信息流广告，你的**注意力极其有限，只会快速滑动**，任何不能在2秒内抓住你注意力的文案都会被忽略。
 
 # 核心任务
-我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的付费广告文案。请根据以下【评测标准】，对每一篇文案进行独立、客观、严格的打分，并最终选出最佳版本。
+我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的付费广告文案。请根据以下【评测标准】，对每一篇文案进行独立、客观、严格的打分，选出最有可能带来最高点击率和转化率的版本。
+如果出现两篇文案同样优秀的情况，请优先选择**更加简洁**的那一篇作为最佳版本。
 
 ---
 ### 【品牌核心信息】
@@ -117,25 +209,31 @@ def get_paid_ad_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy_C
 
 ---
 ### 【评测标准】
-请从以下三个维度，为每篇文案打分（1-5分制，5分为最高分）：
+请从以下四个维度，为每篇文案打分（1-5分制，5分为最高分）：
 
-1.  **点击吸引力 (Click-Through Appeal):**
+1.  **简洁性 (Brevity):**
+    * **评测核心：** 这条文案是否符合付费广告“短平快”的本质？是否过于冗长，字数太多？
+    * **5分:** 极其精炼，信息高度压缩，完美适配信息流的阅读场景。
+    * **3分:** 略有啰嗦，但核心信息尚算清晰。
+    * **1分:** **灾难性的冗长**，包含了大段的、不必要的细节，完全不适合作为付费广告。**（此项为关键否决项）**
+
+2.  **点击吸引力 (Click-Through Appeal):**
     * **评测核心：** 这条文案是否能在一瞬间抓住我的眼球，让我停下手中的滑动并产生点击的冲动？
-    * **5分:** “钩子”极具冲击力，能迅速激发好奇心或击中痛点，让我不点就难受。
+    * **5分:** 极具冲击力，能迅速激发好奇心或击中痛点，让我不点就难受。
     * **3分:** 开头中规中矩，有一定吸引力但缺乏亮点，可能会被快速划过。
     * **1分:** 开头平淡无奇，广告感过重，会立刻被大脑忽略。
-
-2.  **信息传递效率 (Message Efficiency):**
-    * **评测核心：** 我是否能在扫一眼的时间内（约2-3秒），迅速明白这个广告的核心内容和价值？
-    * **5分:** 核心利益点极其突出，一目了然，信息密度恰到好处。
-    * **3分:** 能够理解核心意思，但需要花几秒钟时间阅读和思考。
-    * **1分:** 信息混乱、冗长或模糊，看完后不清楚产品到底是做什么的。
 
 3.  **行动号召有效性 (CTA Effectiveness):**
     * **评测核心：** 文案是否清晰、有力地引导我进行下一步动作？
     * **5分:** 行动号召（CTA）明确、有说服力，并与文案内容紧密结合，让我有点击的欲望。
-    * **3.基本契合:** 有CTA，但比较弱或模板化（如“了解更多”）。
+    * **3分:** 有CTA，但比较弱或模板化（如“了解更多”）。
     * **1分:** 没有CTA，或者CTA含糊不清，让用户不知所措。
+
+4.  **事实准确性 (Factual Accuracy):**
+    * **评测核心：** 文案中提到的所有产品信息是否与【产品信息】中的事实完全一致？
+    * **5分:** 所有事实信息100%准确无误。
+    * **3分:** 有微小出入，但不影响核心信息。
+    * **1分:** 包含明显的、会误导消费者的事实性错误。
 
 ---
 ### 【待评测内容】
@@ -159,24 +257,26 @@ def get_paid_ad_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy_C
 ```json
 {{
   "model_A_evaluation": {{
+    "score_suitability_brevity": <分数>,
     "score_click_appeal": <分数>,
-    "score_message_efficiency": <分数>,
     "score_cta_effectiveness": <分数>,
-    "critique": "<不超过20字的简短评价>"
+    "score_factual_accuracy": <分数>,
+    "critique": "<指出该文案最主要的一个优点或缺点>"
   }},
   "model_B_evaluation": {{
+    "score_suitability_brevity": <分数>,
     "score_click_appeal": <分数>,
-    "score_message_efficiency": <分数>,
     "score_cta_effectiveness": <分数>,
-    "critique": "<不超过20字的简短评价>"
+    "score_factual_accuracy": <分数>,
+    "critique": "<指出该文案最主要的一个优点或缺点>"
   }},
   "model_C_evaluation": {{
+    "score_suitability_brevity": <分数>,
     "score_click_appeal": <分数>,
-    "score_message_efficiency": <分数>,
     "score_cta_effectiveness": <分数>,
-    "critique": "<不超过20字的简短评价>"
-  }},
-  "best_model": "<'A', 'B', 或 'C'>"
+    "score_factual_accuracy": <分数>,
+    "critique": "<指出该文案最主要的一个优点或缺点>"
+  }}
 }}
 """
 
@@ -199,7 +299,7 @@ def get_ecommerce_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy
 你是一位极其理性的“成分党”消费者和产品评测专家，在决定购买前，会仔细研究产品的每一个细节。你代表着“原素方程 (Elemental Equation)”品牌最核心的目标用户。
 
 # 核心任务
-我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的电商详情页文案。请根据以下【评测标准】，对每一篇文案进行独立、客观、严格的打分，并最终选出最能说服你下单的版本。
+我将为你提供一个产品的基本信息，以及三个不同AI模型（模型A, 模型B, 模型C）为该产品撰写的电商详情页文案。请根据以下【评测标准】，对每一篇文案进行独立、客观、严格的打分。
 
 ---
 ### 【品牌核心信息】
@@ -266,7 +366,6 @@ def get_ecommerce_judge_prompt(product_info: str, copy_A: str, copy_B: str, copy
     "score_clarity_value": <分数>,
     "score_trust_building": <分数>,
     "critique": "<不超过20字的简短评价>"
-  }},
-  "best_model": "<'A', 'B', 或 'C'>"
+  }}
 }}
 """
