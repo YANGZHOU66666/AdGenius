@@ -25,7 +25,7 @@ SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 # 输入和输出文件名
 EVALUATION_CSV_PATH = "results/evaluation_results_final.csv"
 VAL_DATASET_JSONL_PATH = "data/val_dataset_final.jsonl"
-OUTPUT_CSV_PATH = "results/judge_results_4.csv"
+OUTPUT_CSV_PATH = "results/judge_results_5.csv"
 
 # 硅基流动平台上的模型名称
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"
@@ -86,17 +86,17 @@ def load_data():
     
     return evaluation_df, val_data
 
-def get_judge_prompt_by_type(content_type, product_info, copy_A, copy_B, copy_C):
+def get_judge_prompt_by_type(content_type, prompt, copy_A, copy_B, copy_C):
     """根据内容类型选择对应的评测prompt"""
     if content_type in ["social_media_review", "social_media_educational", "social_media_myth_busting", "social_media_storytelling"]:
-        return get_social_media_judge_prompt(product_info, copy_A, copy_B, copy_C)
+        return get_social_media_judge_prompt(prompt, copy_A, copy_B, copy_C)
     elif content_type in ["paid_ad_cta", "paid_ad_pas", "paid_ad_bab", "paid_ad_fab"]:
-        return get_paid_ad_judge_prompt(product_info, copy_A, copy_B, copy_C)
+        return get_paid_ad_judge_prompt(prompt, copy_A, copy_B, copy_C)
     elif content_type == "ecommerce_long_form":
-        return get_ecommerce_judge_prompt(product_info, copy_A, copy_B, copy_C)
+        return get_ecommerce_judge_prompt(prompt, copy_A, copy_B, copy_C)
     else:
         print(f"警告：未知的内容类型 '{content_type}'，使用社交媒体评测prompt")
-        return get_social_media_judge_prompt(product_info, copy_A, copy_B, copy_C)
+        return get_social_media_judge_prompt(prompt, copy_A, copy_B, copy_C)
 
 def call_judge_api(client, prompt, max_retries=3):
     """调用评测API"""
@@ -139,31 +139,7 @@ def call_judge_api(client, prompt, max_retries=3):
     
     return None
 
-def extract_product_info(prompt):
-    """从prompt中提取产品信息"""
-    try:
-        # 查找JSON格式的产品信息
-        start_idx = prompt.find('{')
-        if start_idx != -1:
-            # 找到匹配的结束括号
-            brace_count = 0
-            end_idx = start_idx
-            for i, char in enumerate(prompt[start_idx:], start_idx):
-                if char == '{':
-                    brace_count += 1
-                elif char == '}':
-                    brace_count -= 1
-                    if brace_count == 0:
-                        end_idx = i
-                        break
-            
-            if end_idx > start_idx:
-                product_json = prompt[start_idx:end_idx + 1]
-                return product_json
-    except Exception as e:
-        print(f"提取产品信息失败: {e}")
-    
-    return "产品信息提取失败"
+
 
 def main():
     """主函数，执行评测流程"""
@@ -217,13 +193,10 @@ def main():
             base_model_output = row['base_model_output']
             content_type = val_item['type']
             
-            # 提取产品信息
-            product_info = extract_product_info(prompt)
-            
             # 根据内容类型选择评测prompt
             judge_prompt = get_judge_prompt_by_type(
                 content_type, 
-                product_info, 
+                prompt,  # 直接使用原始prompt
                 golden_answer,  # 作为模型A
                 finetuned_model_output,  # 作为模型B
                 base_model_output  # 作为模型C

@@ -1,0 +1,39 @@
+第一次：
+SFT训练 on Qwen2.5-7B：
+
+(/root/autodl-tmp/train/adginus_env) root@autodl-container-c6d54aa471-1d603b3b:~/autodl-tmp# python3 train/train.py
+正在从 'train/data/sft_dataset_final.jsonl' 加载数据集...
+数据集长度: 612
+>>> 正在配置LoRA...
+>>> 正在配置SFTConfig训练参数...
+>>> 正在初始化SFT Trainer...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:03<00:00,  1.22it/s]
+Tokenizing train dataset: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 612/612 [00:00<00:00, 982.09 examples/s]
+Truncating train dataset: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 612/612 [00:00<00:00, 160131.88 examples/s]
+Detected kernel version 4.19.90, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
+Trainer.tokenizer is now deprecated. You should use Trainer.processing_class instead.
+>>> 开始训练...
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'bos_token_id': None, 'pad_token_id': 151643}.
+{'loss': 2.3207, 'grad_norm': 1.2425537109375, 'learning_rate': 1.7142823452219036e-05, 'entropy': 2.176975865662098, 'num_tokens': 53736.0, 'mean_token_accuracy': 0.5622172197327018, 'epoch': 0.26}  
+{'loss': 1.5837, 'grad_norm': 0.8447073101997375, 'learning_rate': 9.79601462608595e-06, 'entropy': 1.6121614746749402, 'num_tokens': 106152.0, 'mean_token_accuracy': 0.6843115456402302, 'epoch': 0.52}
+{'loss': 1.3834, 'grad_norm': 0.9019185304641724, 'learning_rate': 2.5776587699573007e-06, 'entropy': 1.3858974654227496, 'num_tokens': 160016.0, 'mean_token_accuracy': 0.7143297586590052, 'epoch': 0.78}
+{'train_runtime': 134.7373, 'train_samples_per_second': 4.542, 'train_steps_per_second': 0.571, 'train_loss': 1.6642930910184786, 'entropy': 1.3175921702023707, 'num_tokens': 201350.0, 'mean_token_accuracy': 0.7295869507572867, 'epoch': 1.0}
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 77/77 [02:14<00:00,  1.75s/it]
+>>> 训练完成，正在保存最终的LoRA适配器...
+✅ LoRA适配器已成功保存至: Qwen2.5-7B-Instruct-sft-lora-adapter
+
+合并LoRA Adapter:
+
+(/root/autodl-tmp/train/adginus_env) root@autodl-container-c6d54aa471-1d603b3b:~/autodl-tmp# python3 train/merge_adapter.py
+--- 开始合并 LoRA 适配器 ---
+正在从 'Qwen2.5-7B-Instruct' 加载基础模型...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:03<00:00,  1.16it/s]
+正在从 'Qwen2.5-7B-Instruct' 加载Tokenizer...
+正在从 'Qwen2.5-7B-Instruct-sft-lora-adapter' 加载并应用LoRA适配器...
+>>> 正在执行合并操作...
+>>> 合并完成！
+正在将合并后的模型保存到 'Qwen2.5-7B-Instruct-sft-final'...
+✅ 合并后的模型已成功保存至: Qwen2.5-7B-Instruct-sft-final
+
