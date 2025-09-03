@@ -4,6 +4,24 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from typing import List, Dict, Any
 
 
+def load_val_dataset(file_path: str) -> List[Dict[str, Any]]:
+    """
+    读取验证数据集
+    
+    Args:
+        file_path: JSONL文件路径
+        
+    Returns:
+        包含验证数据的列表
+    """
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            if line.strip():
+                data.append(json.loads(line.strip()))
+    return data
+
+
 def load_test_cases() -> List[Dict[str, Any]]:
     """
     创建测试用例，包含不同类型的文案质量对比
@@ -138,63 +156,128 @@ def run_single_test(model, tokenizer, device, test_case: Dict[str, Any]) -> Dict
     }
 
 
+def evaluate_model_on_dataset(model, tokenizer, device, dataset: List[Dict[str, Any]], model_name: str):
+    """
+    在验证集上评估模型
+    
+    Args:
+        model: 奖励模型
+        tokenizer: 分词器
+        device: 设备
+        dataset: 验证数据集
+        model_name: 模型名称
+        
+    Returns:
+        评估结果字典
+    """
+    print(f"\n--- 开始评估 {model_name} ---")
+    
+    chosen_scores = []
+    rejected_scores = []
+    
+    for i, item in enumerate(dataset):
+        prompt = item['prompt']
+        chosen = item['chosen']
+        rejected = item['rejected']
+        
+        # 计算chosen的分数
+        chosen_score = calculate_reward_score(model, tokenizer, device, prompt, chosen)
+        chosen_scores.append(chosen_score)
+        
+        # 计算rejected的分数
+        rejected_score = calculate_reward_score(model, tokenizer, device, prompt, rejected)
+        rejected_scores.append(rejected_score)
+        
+        if (i + 1) % 50 == 0:
+            print(f"已处理 {i + 1}/{len(dataset)} 条数据")
+    
+    # 计算平均值
+    avg_chosen_score = sum(chosen_scores) / len(chosen_scores)
+    avg_rejected_score = sum(rejected_scores) / len(rejected_scores)
+    score_diff = avg_chosen_score - avg_rejected_score
+    
+    print(f"{model_name} 评估完成:")
+    print(f"  正样本平均分数: {avg_chosen_score:.4f}")
+    print(f"  负样本平均分数: {avg_rejected_score:.4f}")
+    print(f"  分数差异: {score_diff:.4f}")
+    
+    return {
+        "model_name": model_name,
+        "avg_chosen_score": avg_chosen_score,
+        "avg_rejected_score": avg_rejected_score,
+        "score_diff": score_diff,
+        "chosen_scores": chosen_scores,
+        "rejected_scores": rejected_scores
+    }
+
+
 def run_reward_model_tests():
     """
     运行完整的奖励模型测试
     """
-    print("=== 奖励模型测试开始 ===")
+    print("=== 奖励模型对比测试开始 ===")
     
     # 配置路径
-    model_path = "../models/qwen2_5-0.5b-reward-model"  # 训练好的奖励模型路径
+    base_model_path = "models/Skywork-Reward-V2-Qwen3-0.6B"  # 基础模型路径
+    finetuned_model_path = "models/Skywork-Reward-V2-Qwen3-0.6B-finetuned"  # 微调后模型路径
+    val_dataset_path = "data/val_dataset_final.jsonl"  # 验证数据集路径
     
-    # 加载模型
-    model, tokenizer, device = load_reward_model(model_path)
-    if model is None:
-        print("模型加载失败，测试终止")
+    # 加载验证数据集
+    print("正在加载验证数据集...")
+    val_dataset = load_val_dataset(val_dataset_path)
+    print(f"成功加载验证数据集: {len(val_dataset)} 条")
+    
+    # 加载基础模型
+    print("\n正在加载基础模型...")
+    base_model, base_tokenizer, device = load_reward_model(base_model_path)
+    if base_model is None:
+        print("基础模型加载失败，测试终止")
         return
     
-    # 加载测试用例
-    test_cases = load_test_cases()
-    print(f"\n--- 加载了 {len(test_cases)} 个测试用例 ---")
+    # 加载微调后模型
+    print("\n正在加载微调后模型...")
+    finetuned_model, finetuned_tokenizer, device = load_reward_model(finetuned_model_path)
+    if finetuned_model is None:
+        print("微调后模型加载失败，测试终止")
+        return
     
-    # 运行所有测试
-    results = []
-    correct_count = 0
+    # 在验证集上评估基础模型
+    base_results = evaluate_model_on_dataset(base_model, base_tokenizer, device, val_dataset, "基础模型")
     
-    for test_case in test_cases:
-        result = run_single_test(model, tokenizer, device, test_case)
-        results.append(result)
-        if result['is_correct']:
-            correct_count += 1
+    # 在验证集上评估微调后模型
+    finetuned_results = evaluate_model_on_dataset(finetuned_model, finetuned_tokenizer, device, val_dataset, "微调后模型")
     
-    # 输出总结
+    # 对比结果
     print(f"\n{'='*60}")
-    print("测试总结")
+    print("模型对比结果")
     print(f"{'='*60}")
-    print(f"总测试用例: {len(test_cases)}")
-    print(f"正确判断: {correct_count}")
-    print(f"错误判断: {len(test_cases) - correct_count}")
-    print(f"准确率: {correct_count/len(test_cases)*100:.1f}%")
+    print(f"数据集大小: {len(val_dataset)} 条")
+    print()
+    print("基础模型:")
+    print(f"  正样本平均分数: {base_results['avg_chosen_score']:.4f}")
+    print(f"  负样本平均分数: {base_results['avg_rejected_score']:.4f}")
+    print(f"  分数差异: {base_results['score_diff']:.4f}")
+    print()
+    print("微调后模型:")
+    print(f"  正样本平均分数: {finetuned_results['avg_chosen_score']:.4f}")
+    print(f"  负样本平均分数: {finetuned_results['avg_rejected_score']:.4f}")
+    print(f"  分数差异: {finetuned_results['score_diff']:.4f}")
+    print()
+    print("改进情况:")
+    chosen_improvement = finetuned_results['avg_chosen_score'] - base_results['avg_chosen_score']
+    rejected_improvement = finetuned_results['avg_rejected_score'] - base_results['avg_rejected_score']
+    diff_improvement = finetuned_results['score_diff'] - base_results['score_diff']
     
-    # 详细结果
-    print(f"\n详细结果:")
-    for result in results:
-        status = "✅" if result['is_correct'] else "❌"
-        print(f"{status} {result['test_name']}: {result['score_diff']:.4f}")
+    print(f"  正样本分数变化: {chosen_improvement:+.4f}")
+    print(f"  负样本分数变化: {rejected_improvement:+.4f}")
+    print(f"  分数差异变化: {diff_improvement:+.4f}")
     
-    # 保存结果到文件
-    output_file = "../results/rm_test_results.json"
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump({
-            "model_path": model_path,
-            "total_tests": len(test_cases),
-            "correct_count": correct_count,
-            "accuracy": correct_count/len(test_cases)*100,
-            "detailed_results": results
-        }, f, ensure_ascii=False, indent=2)
+    if diff_improvement > 0:
+        print(f"  ✅ 微调后模型表现更好，分数差异增加了 {diff_improvement:.4f}")
+    else:
+        print(f"  ❌ 微调后模型表现较差，分数差异减少了 {abs(diff_improvement):.4f}")
     
-    print(f"\n测试结果已保存到: {output_file}")
-    print("=== 奖励模型测试完成 ===")
+    print("=== 奖励模型对比测试完成 ===")
 
 
 if __name__ == "__main__":

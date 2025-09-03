@@ -62,21 +62,34 @@ def finetune_reward_model():
     # 可以根据具体情况修改以下路径
     model_path = "models/Skywork-Reward-V2-Qwen3-0.6B"  # 基础模型路径
     output_dir = "models/Skywork-Reward-V2-Qwen3-0.6B-finetuned"  # 输出模型路径
-    dataset_path = "data/rm_dataset_final.jsonl"  # 数据集路径
+    train_dataset_path = "data/rm_dataset_final.jsonl"  # 训练数据集路径
+    val_dataset_path = "data/val_dataset_final.jsonl"  # 验证数据集路径
     
     # --- 第一步：准备数据集 ---
     print("\n--- 1. 准备数据集中... ---")
     
-    if not os.path.exists(dataset_path):
-        raise FileNotFoundError(f"数据集文件不存在: {dataset_path}")
+    # 检查训练数据集
+    if not os.path.exists(train_dataset_path):
+        raise FileNotFoundError(f"训练数据集文件不存在: {train_dataset_path}")
     
-    # 读取原始数据
-    raw_data = load_rm_dataset(dataset_path)
-    print(f"成功读取 {len(raw_data)} 条训练数据")
+    # 检查验证数据集
+    if not os.path.exists(val_dataset_path):
+        raise FileNotFoundError(f"验证数据集文件不存在: {val_dataset_path}")
+    
+    # 读取训练数据
+    train_raw_data = load_rm_dataset(train_dataset_path)
+    print(f"成功读取 {len(train_raw_data)} 条训练数据")
+    
+    # 读取验证数据
+    val_raw_data = load_rm_dataset(val_dataset_path)
+    print(f"成功读取 {len(val_raw_data)} 条验证数据")
     
     # 转换为 Hugging Face 格式
-    train_data = convert_to_hf_format(raw_data)
+    train_data = convert_to_hf_format(train_raw_data)
+    val_data = convert_to_hf_format(val_raw_data)
+    
     train_dataset = Dataset.from_dict(train_data)
+    val_dataset = Dataset.from_dict(val_data)
     print("--- 数据集准备完成 ---")
 
     # --- 第二步：加载基础模型和分词器 ---
@@ -167,8 +180,9 @@ def finetune_reward_model():
             "attention_mask_rejected": tokens_rejected["attention_mask"],
         }
     
-    # 对数据集应用这个格式化函数
-    formatted_dataset = train_dataset.map(formatting_func, batched=True)
+    # 对训练和验证数据集应用格式化函数
+    formatted_train_dataset = train_dataset.map(formatting_func, batched=True)
+    formatted_val_dataset = val_dataset.map(formatting_func, batched=True)
     print("--- 数据预处理完成 ---")
 
     # --- 第四步：配置并开始训练 ---
@@ -180,6 +194,7 @@ def finetune_reward_model():
     training_args = RewardConfig(
         output_dir=output_dir,
         per_device_train_batch_size=2,           # 根据显存调整批次大小
+        per_device_eval_batch_size=2,            # 验证批次大小
         num_train_epochs=1,                      # 训练轮次
         learning_rate=5e-6,                      # 较小的学习率
         logging_steps=10,                        # 每隔多少步打印一次日志
@@ -189,8 +204,8 @@ def finetune_reward_model():
         remove_unused_columns=False,             # 必须设置为 False
         dataloader_drop_last=True,               # 丢弃最后一个不完整的批次
         save_total_limit=3,                      # 最多保存3个检查点
-        load_best_model_at_end=True,             # 训练结束时加载最佳模型
-        metric_for_best_model="loss",            # 用于选择最佳模型的指标
+        load_best_model_at_end=False,            # 暂时关闭，避免配置冲突
+        metric_for_best_model="eval_loss",       # 用于选择最佳模型的指标
         greater_is_better=False,                 # loss越小越好
         report_to=None,                          # 不使用wandb等工具
     )
@@ -199,7 +214,8 @@ def finetune_reward_model():
     trainer = RewardTrainer(
         model=model,
         args=training_args,
-        train_dataset=formatted_dataset,
+        train_dataset=formatted_train_dataset,
+        eval_dataset=formatted_val_dataset,
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer),
     )
 
@@ -217,10 +233,12 @@ def finetune_reward_model():
     # 保存训练配置信息
     config_info = {
         "base_model": model_path,
-        "dataset_size": len(raw_data),
+        "train_dataset_size": len(train_raw_data),
+        "val_dataset_size": len(val_raw_data),
         "training_epochs": training_args.num_train_epochs,
         "learning_rate": training_args.learning_rate,
-        "batch_size": training_args.per_device_train_batch_size,
+        "train_batch_size": training_args.per_device_train_batch_size,
+        "eval_batch_size": training_args.per_device_eval_batch_size,
         "max_length": 1024
     }
     

@@ -1,5 +1,6 @@
-第一次：
-SFT训练 on Qwen2.5-7B：
+·SFT训练
+
+第一次：on Qwen2.5-7B：
 
 (/root/autodl-tmp/train/adginus_env) root@autodl-container-c6d54aa471-1d603b3b:~/autodl-tmp# python3 train/train.py
 正在从 'train/data/sft_dataset_final.jsonl' 加载数据集...
@@ -37,3 +38,128 @@ Loading checkpoint shards: 100%|████████████████
 正在将合并后的模型保存到 'Qwen2.5-7B-Instruct-sft-final'...
 ✅ 合并后的模型已成功保存至: Qwen2.5-7B-Instruct-sft-final
 
+
+第二次（在Qwen2.5-7B-Instruct）和第三次（在Qwen3-4B-Instruct-2507）log忘记记录了，和上面指令一样，大同小异
+
+·Reward Model训练
+
+第一次：
+
+(/root/autodl-tmp/train/adginus_env) root@autodl-container-c6d54aa471-1d603b3b:~/autodl-tmp# python3 train/rm_train.py
+=== 开始奖励模型微调 ===
+
+--- 1. 准备数据集中... ---
+成功读取 612 条训练数据
+成功读取 170 条验证数据
+--- 数据集准备完成 ---
+
+--- 2. 加载基础模型: Skywork-Reward-V2-Qwen3-4B ---
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:02<00:00,  1.04s/it]
+--- 模型加载成功，将运行在: cuda ---
+
+--- 3. 数据预处理中... ---
+Map: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 612/612 [00:00<00:00, 1020.84 examples/s]
+Map: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 170/170 [00:00<00:00, 1199.78 examples/s]
+--- 数据预处理完成 ---
+
+--- 4. 配置训练参数并开始训练... ---
+Detected kernel version 4.19.90, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
+开始训练...
+  0%|                                                                                                                                                                           | 0/306 [00:00<?, ?it/s]You're using a Qwen2TokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+{'loss': 0.9711, 'grad_norm': 7.979763507843018, 'learning_rate': 9.000000000000001e-07, 'epoch': 0.03}                                                                                                 
+{'loss': 0.0924, 'grad_norm': 0.161222904920578, 'learning_rate': 1.9000000000000002e-06, 'epoch': 0.07}                                                                                                
+{'loss': 0.0884, 'grad_norm': 1.1843732661276363e-09, 'learning_rate': 2.9e-06, 'epoch': 0.1}                                                                                                           
+{'loss': 0.0347, 'grad_norm': 78.54852294921875, 'learning_rate': 3.900000000000001e-06, 'epoch': 0.13}                                                                                                 
+{'loss': 0.0831, 'grad_norm': 0.007094039116054773, 'learning_rate': 4.9000000000000005e-06, 'epoch': 0.16}                                                                                             
+{'loss': 0.005, 'grad_norm': 1.6191341956073302e-06, 'learning_rate': 4.824218750000001e-06, 'epoch': 0.2}                                                                                              
+{'loss': 0.0288, 'grad_norm': 1.021157290670427e-11, 'learning_rate': 4.62890625e-06, 'epoch': 0.23}                                                                                                    
+{'loss': 0.0534, 'grad_norm': 1.6262794133581338e-07, 'learning_rate': 4.433593750000001e-06, 'epoch': 0.26}                                                                                            
+{'loss': 0.0, 'grad_norm': 3.4824150263760775e-14, 'learning_rate': 4.23828125e-06, 'epoch': 0.29}                                                                                                      
+{'loss': 0.0007, 'grad_norm': 0.4855482280254364, 'learning_rate': 4.0429687500000004e-06, 'epoch': 0.33}                                                                                               
+{'loss': 0.0012, 'grad_norm': 2.486711357663207e-12, 'learning_rate': 3.84765625e-06, 'epoch': 0.36}                                                                                                    
+{'loss': 0.0347, 'grad_norm': 0.0, 'learning_rate': 3.6523437500000003e-06, 'epoch': 0.39}                                                                                                              
+{'loss': 0.0, 'grad_norm': 2.1800346367324024e-16, 'learning_rate': 3.45703125e-06, 'epoch': 0.42}                                                                                                      
+{'loss': 0.0, 'grad_norm': 7.963362254161175e-16, 'learning_rate': 3.26171875e-06, 'epoch': 0.46}                                                                                                       
+{'loss': 0.0262, 'grad_norm': 0.0, 'learning_rate': 3.0664062500000004e-06, 'epoch': 0.49}                                                                                                              
+{'loss': 0.0, 'grad_norm': 1.806079730215515e-08, 'learning_rate': 2.8710937500000003e-06, 'epoch': 0.52}                                                                                               
+{'loss': 0.0, 'grad_norm': 1.663379478600291e-08, 'learning_rate': 2.6757812500000002e-06, 'epoch': 0.56}                                                                                               
+{'loss': 0.0006, 'grad_norm': 0.0, 'learning_rate': 2.48046875e-06, 'epoch': 0.59}                                                                                                                      
+{'loss': 0.1378, 'grad_norm': 1.3493537071116585e-13, 'learning_rate': 2.28515625e-06, 'epoch': 0.62}                                                                                                   
+{'loss': 0.0145, 'grad_norm': 2.961201984370853e-15, 'learning_rate': 2.08984375e-06, 'epoch': 0.65}                                                                                                    
+{'loss': 0.0, 'grad_norm': 4.946139851857989e-12, 'learning_rate': 1.89453125e-06, 'epoch': 0.69}                                                                                                       
+{'loss': 0.0157, 'grad_norm': 5.857411000675938e-09, 'learning_rate': 1.6992187500000002e-06, 'epoch': 0.72}                                                                                            
+{'loss': 0.0, 'grad_norm': 3.071690812816996e-08, 'learning_rate': 1.5039062500000001e-06, 'epoch': 0.75}                                                                                               
+{'loss': 0.0, 'grad_norm': 3.12852222350557e-07, 'learning_rate': 1.30859375e-06, 'epoch': 0.78}                                                                                                        
+{'loss': 0.0009, 'grad_norm': 1.061596890394867e-06, 'learning_rate': 1.1132812500000002e-06, 'epoch': 0.82}                                                                                            
+{'loss': 0.0634, 'grad_norm': 0.4010314643383026, 'learning_rate': 9.179687500000001e-07, 'epoch': 0.85}                                                                                                
+{'loss': 0.0, 'grad_norm': 1.2882578559469948e-08, 'learning_rate': 7.226562500000001e-07, 'epoch': 0.88}                                                                                               
+{'loss': 0.0214, 'grad_norm': 1.5217898155127942e-17, 'learning_rate': 5.2734375e-07, 'epoch': 0.92}                                                                                                    
+{'loss': 0.0547, 'grad_norm': 1.0430891634666022e-19, 'learning_rate': 3.3203125e-07, 'epoch': 0.95}                                                                                                    
+{'loss': 0.0, 'grad_norm': 1.447696346482119e-12, 'learning_rate': 1.3671875000000001e-07, 'epoch': 0.98}                                                                                               
+{'train_runtime': 1348.9067, 'train_samples_per_second': 0.454, 'train_steps_per_second': 0.227, 'train_loss': 0.056489772882737335, 'epoch': 1.0}                                                      
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 306/306 [22:28<00:00,  4.41s/it]
+--- 训练完成！---
+
+--- 5. 保存微调后的模型... ---
+--- 模型已成功保存到 'Skywork-Reward-V2-Qwen3-4B-finetuned' 目录 ---
+--- 训练配置信息已保存 ---
+=== 奖励模型微调完成 ===
+
+（log应该是健康的）
+
+·reward model在验证集上测试：
+
+(/root/autodl-tmp/train/adginus_env) root@autodl-container-c6d54aa471-1d603b3b:~/autodl-tmp# python3 train/rm_test.py
+=== 奖励模型对比测试开始 ===
+正在加载验证数据集...
+成功加载验证数据集: 170 条
+
+正在加载基础模型...
+--- 正在加载奖励模型: Skywork-Reward-V2-Qwen3-4B ---
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:02<00:00,  1.34s/it]
+--- 模型加载成功，运行在: cuda ---
+
+正在加载微调后模型...
+--- 正在加载奖励模型: Skywork-Reward-V2-Qwen3-4B-finetuned ---
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:00<00:00, 69.72it/s]
+--- 模型加载成功，运行在: cuda ---
+
+--- 开始评估 基础模型 ---
+已处理 50/170 条数据
+已处理 100/170 条数据
+已处理 150/170 条数据
+基础模型 评估完成:
+  正样本平均分数: 17.8422
+  负样本平均分数: 12.4769
+  分数差异: 5.3653
+
+--- 开始评估 微调后模型 ---
+已处理 50/170 条数据
+已处理 100/170 条数据
+已处理 150/170 条数据
+微调后模型 评估完成:
+  正样本平均分数: 2.2866
+  负样本平均分数: -41.8639
+  分数差异: 44.1505
+
+============================================================
+模型对比结果
+============================================================
+数据集大小: 170 条
+
+基础模型:
+  正样本平均分数: 17.8422
+  负样本平均分数: 12.4769
+  分数差异: 5.3653
+
+微调后模型:
+  正样本平均分数: 2.2866
+  负样本平均分数: -41.8639
+  分数差异: 44.1505
+
+改进情况:
+  正样本分数变化: -15.5556
+  负样本分数变化: -54.3408
+  分数差异变化: +38.7852
+  ✅ 微调后模型表现更好，分数差异增加了 38.7852
+=== 奖励模型对比测试完成 ===
