@@ -248,7 +248,7 @@ def main():
         return
     
     # 加载SFT数据
-    sft_file_path = "data/sft_dataset_cleaned.jsonl"
+    sft_file_path = "data/val_dataset_cleaned.jsonl"
     print(f"正在加载SFT数据: {sft_file_path}")
     
     try:
@@ -264,7 +264,7 @@ def main():
     print(f"成功生成 {len(rm_data)} 条RM数据")
     
     # 保存为CSV文件
-    output_file = "data/rm_dataset.csv"
+    output_file = "data/val_rm_dataset_temp.csv"
     print(f"正在保存到: {output_file}")
     
     try:

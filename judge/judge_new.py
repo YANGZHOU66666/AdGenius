@@ -12,8 +12,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
 
-# 从judge_prompts.py文件中导入评测Prompt函数
-from judge_prompts import (
+# 从judge_prompts_new.py文件中导入评测Prompt函数
+from judge_prompts_new import (
     get_social_media_judge_prompt,
     get_paid_ad_judge_prompt,
     get_ecommerce_judge_prompt
@@ -23,9 +23,10 @@ from judge_prompts import (
 SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 
 # 输入和输出文件名
-EVALUATION_CSV_PATH = "results/evaluation_results_final_Qwen3.csv"
-VAL_DATASET_JSONL_PATH = "data/val_dataset_final.jsonl"
-OUTPUT_CSV_PATH = "results/judge_results_final_Qwen3.csv"
+EVALUATION_CSV_PATH = "results/evaluation_results_final.csv"  # 评测结果CSV文件路径
+VAL_DATASET_JSONL_PATH = "data/val_dataset_final.jsonl"  # 验证数据集路径
+OUTPUT_CSV_PATH = "results/single_model_judge_results.csv"  # 输出CSV文件路径
+RESPONSE_KEY = "finetuned_model_output"  # 模型回答的键名
 
 # 硅基流动平台上的模型名称
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"
@@ -86,17 +87,17 @@ def load_data():
     
     return evaluation_df, val_data
 
-def get_judge_prompt_by_type(content_type, prompt, copy_A, copy_B, copy_C):
+def get_judge_prompt_by_type(content_type, prompt, model_output):
     """根据内容类型选择对应的评测prompt"""
     if content_type in ["social_media_review", "social_media_educational", "social_media_myth_busting", "social_media_storytelling"]:
-        return get_social_media_judge_prompt(prompt, copy_A, copy_B, copy_C)
+        return get_social_media_judge_prompt(prompt, model_output)
     elif content_type in ["paid_ad_cta", "paid_ad_pas", "paid_ad_bab", "paid_ad_fab"]:
-        return get_paid_ad_judge_prompt(prompt, copy_A, copy_B, copy_C)
+        return get_paid_ad_judge_prompt(prompt, model_output)
     elif content_type == "ecommerce_long_form":
-        return get_ecommerce_judge_prompt(prompt, copy_A, copy_B, copy_C)
+        return get_ecommerce_judge_prompt(prompt, model_output)
     else:
         print(f"警告：未知的内容类型 '{content_type}'，使用社交媒体评测prompt")
-        return get_social_media_judge_prompt(prompt, copy_A, copy_B, copy_C)
+        return get_social_media_judge_prompt(prompt, model_output)
 
 def call_judge_api(client, prompt, max_retries=3):
     """调用评测API"""
@@ -139,11 +140,14 @@ def call_judge_api(client, prompt, max_retries=3):
     
     return None
 
-
+def calculate_avg_score(eval_dict):
+    """计算平均分"""
+    scores = [v for k, v in eval_dict.items() if k.startswith('score_')]
+    return sum(scores) / len(scores) if scores else 0
 
 def main():
     """主函数，执行评测流程"""
-    print("--- AI评测脚本启动 (使用硅基流动API) ---")
+    print("--- 单模型评测脚本启动 (使用硅基流动API) ---")
 
     # 检查依赖
     if not check_dependencies():
@@ -175,6 +179,8 @@ def main():
         return
 
     print(f"开始评测 {len(evaluation_df)} 条数据...")
+    print(f"使用响应键: {RESPONSE_KEY}")
+    print(f"输出文件: {OUTPUT_CSV_PATH}")
 
     # 存储评测结果
     judge_results = []
@@ -188,18 +194,14 @@ def main():
             
             # 提取数据
             prompt = row['prompt']
-            golden_answer = row['golden_answer']
-            finetuned_model_output = row['finetuned_model_output']
-            base_model_output = row['base_model_output']
+            model_output = row[RESPONSE_KEY]
             content_type = val_item['type']
             
             # 根据内容类型选择评测prompt
             judge_prompt = get_judge_prompt_by_type(
                 content_type, 
-                prompt,  # 直接使用原始prompt
-                golden_answer,  # 作为模型A
-                finetuned_model_output,  # 作为模型B
-                base_model_output  # 作为模型C
+                prompt, 
+                model_output
             )
             
             # 调用评测API
@@ -212,48 +214,24 @@ def main():
             
             # 解析评测结果
             try:
-                # 提取各模型的评分
-                model_A_eval = result.get('model_A_evaluation', {})
-                model_B_eval = result.get('model_B_evaluation', {})
-                model_C_eval = result.get('model_C_evaluation', {})
+                # 提取模型评分
+                model_eval = result.get('model_evaluation', {})
                 
                 # 计算平均分
-                def calculate_avg_score(eval_dict):
-                    scores = [v for k, v in eval_dict.items() if k.startswith('score_')]
-                    return sum(scores) / len(scores) if scores else 0
-                
-                avg_score_A = calculate_avg_score(model_A_eval)
-                avg_score_B = calculate_avg_score(model_B_eval)
-                avg_score_C = calculate_avg_score(model_C_eval)
-                
-                # 根据平均分自动判断最佳模型
-                if avg_score_A >= avg_score_B and avg_score_A >= avg_score_C:
-                    best_model = 'A'
-                elif avg_score_B >= avg_score_A and avg_score_B >= avg_score_C:
-                    best_model = 'B'
-                else:
-                    best_model = 'C'
+                avg_score = calculate_avg_score(model_eval)
                 
                 # 存储结果
                 judge_result = {
                     'index': idx,
                     'content_type': content_type,
-                    'best_model': best_model,
-                    'golden_avg_score': avg_score_A,
-                    'finetuned_avg_score': avg_score_B,
-                    'base_avg_score': avg_score_C,
-                    'golden_critique': model_A_eval.get('critique', ''),
-                    'finetuned_critique': model_B_eval.get('critique', ''),
-                    'base_critique': model_C_eval.get('critique', ''),
-                    'golden_scores': model_A_eval,
-                    'finetuned_scores': model_B_eval,
-                    'base_scores': model_C_eval
+                    'avg_score': avg_score,
+                    'critique': model_eval.get('critique', ''),
+                    'scores': model_eval
                 }
                 
                 judge_results.append(judge_result)
                 
-                print(f"评测完成 - 最佳模型: {best_model}")
-                print(f"  平均分 - Golden: {avg_score_A:.2f}, Finetuned: {avg_score_B:.2f}, Base: {avg_score_C:.2f}")
+                print(f"评测完成 - 平均分: {avg_score:.2f}")
                 
             except Exception as e:
                 print(f"解析评测结果失败: {e}")
@@ -281,28 +259,37 @@ def main():
         print(f"总评测数据: {len(judge_results)} 条")
         
         # 按内容类型统计
-        type_stats = results_df.groupby('content_type').agg({
-            'best_model': 'count',
-            'golden_avg_score': 'mean',
-            'finetuned_avg_score': 'mean',
-            'base_avg_score': 'mean'
-        }).round(2)
-        
-        print("\n按内容类型统计:")
-        print(type_stats)
-        
-        # 最佳模型统计
-        best_model_counts = results_df['best_model'].value_counts()
-        print(f"\n最佳模型统计:")
-        for model, count in best_model_counts.items():
-            print(f"  {model}: {count} 次 ({count/len(judge_results)*100:.1f}%)")
-        
-        # 平均分对比
-        overall_avg = results_df[['golden_avg_score', 'finetuned_avg_score', 'base_avg_score']].mean()
-        print(f"\n整体平均分:")
-        print(f"  Golden (标准答案): {overall_avg['golden_avg_score']:.2f}")
-        print(f"  Finetuned (微调模型): {overall_avg['finetuned_avg_score']:.2f}")
-        print(f"  Base (基础模型): {overall_avg['base_avg_score']:.2f}")
+        if len(judge_results) > 0:
+            type_stats = results_df.groupby('content_type').agg({
+                'avg_score': ['count', 'mean']
+            }).round(2)
+            
+            print("\n按内容类型统计:")
+            print(type_stats)
+            
+            # 整体平均分
+            overall_avg = results_df['avg_score'].mean()
+            print(f"\n整体平均分: {overall_avg:.2f}")
+            
+            # 各维度平均分（如果有的话）
+            score_columns = [col for col in results_df.columns if col.startswith('scores')]
+            if score_columns:
+                print("\n各维度平均分:")
+                for col in score_columns:
+                    if isinstance(results_df[col].iloc[0], dict):
+                        # 如果是字典，提取分数
+                        scores_data = []
+                        for scores_dict in results_df[col]:
+                            if isinstance(scores_dict, dict):
+                                scores_data.append(scores_dict)
+                        
+                        if scores_data:
+                            scores_df = pd.DataFrame(scores_data)
+                            score_cols = [c for c in scores_df.columns if c.startswith('score_')]
+                            if score_cols:
+                                avg_scores = scores_df[score_cols].mean()
+                                for score_name, avg_score in avg_scores.items():
+                                    print(f"  {score_name}: {avg_score:.2f}")
         
         print(f"\n评测结果已保存到: {OUTPUT_CSV_PATH}")
     else:
