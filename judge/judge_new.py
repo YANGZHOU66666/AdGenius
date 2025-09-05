@@ -23,10 +23,10 @@ from judge_prompts_new import (
 SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 
 # 输入和输出文件名
-EVALUATION_CSV_PATH = "results/evaluation_results_final_Qwen3.csv"  # 评测结果CSV文件路径
+EVALUATION_CSV_PATH = "results/Qwen2_5_7B_grpo_results.csv"  # 评测结果CSV文件路径
 VAL_DATASET_JSONL_PATH = "data/val_dataset_final.jsonl"  # 验证数据集路径
-OUTPUT_CSV_PATH = "results/finetuned_qwen3_4b_instruct_results.csv"  # 输出CSV文件路径
-RESPONSE_KEY = "finetuned_model_output"  # 模型回答的键名
+OUTPUT_CSV_PATH = "results/judge_new_Qwen2_5_7b_Instruct_grpo_model_results.csv"  # 输出CSV文件路径
+RESPONSE_KEY = "model_output"  # 模型回答的键名
 
 # 硅基流动平台上的模型名称
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"

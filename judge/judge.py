@@ -23,9 +23,9 @@ from judge_prompts import (
 SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 
 # 输入和输出文件名
-EVALUATION_CSV_PATH = "results/evaluation_results_final_Qwen3.csv"
+EVALUATION_CSV_PATH = "results/Qwen2_5_7B_all_results.csv"
 VAL_DATASET_JSONL_PATH = "data/val_dataset_final.jsonl"
-OUTPUT_CSV_PATH = "results/judge_results_final_Qwen3.csv"
+OUTPUT_CSV_PATH = "results/judge_results_Qwen2_5_7B_all.csv"
 
 # 硅基流动平台上的模型名称
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"
@@ -188,18 +188,18 @@ def main():
             
             # 提取数据
             prompt = row['prompt']
-            golden_answer = row['golden_answer']
-            finetuned_model_output = row['finetuned_model_output']
             base_model_output = row['base_model_output']
+            sft_model_output = row['sft_model_output']
+            grpo_model_output = row['grpo_model_output']
             content_type = val_item['type']
             
             # 根据内容类型选择评测prompt
             judge_prompt = get_judge_prompt_by_type(
                 content_type, 
                 prompt,  # 直接使用原始prompt
-                golden_answer,  # 作为模型A
-                finetuned_model_output,  # 作为模型B
-                base_model_output  # 作为模型C
+                base_model_output,  # 作为模型A
+                sft_model_output,  # 作为模型B
+                grpo_model_output  # 作为模型C
             )
             
             # 调用评测API
@@ -239,21 +239,21 @@ def main():
                     'index': idx,
                     'content_type': content_type,
                     'best_model': best_model,
-                    'golden_avg_score': avg_score_A,
-                    'finetuned_avg_score': avg_score_B,
-                    'base_avg_score': avg_score_C,
-                    'golden_critique': model_A_eval.get('critique', ''),
-                    'finetuned_critique': model_B_eval.get('critique', ''),
-                    'base_critique': model_C_eval.get('critique', ''),
-                    'golden_scores': model_A_eval,
-                    'finetuned_scores': model_B_eval,
-                    'base_scores': model_C_eval
+                    'base_avg_score': avg_score_A,
+                    'sft_avg_score': avg_score_B,
+                    'grpo_avg_score': avg_score_C,
+                    'base_critique': model_A_eval.get('critique', ''),
+                    'sft_critique': model_B_eval.get('critique', ''),
+                    'grpo_critique': model_C_eval.get('critique', ''),
+                    'base_scores': model_A_eval,
+                    'sft_scores': model_B_eval,
+                    'grpo_scores': model_C_eval
                 }
                 
                 judge_results.append(judge_result)
                 
                 print(f"评测完成 - 最佳模型: {best_model}")
-                print(f"  平均分 - Golden: {avg_score_A:.2f}, Finetuned: {avg_score_B:.2f}, Base: {avg_score_C:.2f}")
+                print(f"  平均分 - Base: {avg_score_A:.2f}, SFT: {avg_score_B:.2f}, GRPO: {avg_score_C:.2f}")
                 
             except Exception as e:
                 print(f"解析评测结果失败: {e}")
@@ -283,9 +283,9 @@ def main():
         # 按内容类型统计
         type_stats = results_df.groupby('content_type').agg({
             'best_model': 'count',
-            'golden_avg_score': 'mean',
-            'finetuned_avg_score': 'mean',
-            'base_avg_score': 'mean'
+            'base_avg_score': 'mean',
+            'sft_avg_score': 'mean',
+            'grpo_avg_score': 'mean'
         }).round(2)
         
         print("\n按内容类型统计:")
@@ -298,11 +298,11 @@ def main():
             print(f"  {model}: {count} 次 ({count/len(judge_results)*100:.1f}%)")
         
         # 平均分对比
-        overall_avg = results_df[['golden_avg_score', 'finetuned_avg_score', 'base_avg_score']].mean()
+        overall_avg = results_df[['base_avg_score', 'sft_avg_score', 'grpo_avg_score']].mean()
         print(f"\n整体平均分:")
-        print(f"  Golden (标准答案): {overall_avg['golden_avg_score']:.2f}")
-        print(f"  Finetuned (微调模型): {overall_avg['finetuned_avg_score']:.2f}")
         print(f"  Base (基础模型): {overall_avg['base_avg_score']:.2f}")
+        print(f"  SFT (微调模型): {overall_avg['sft_avg_score']:.2f}")
+        print(f"  GRPO (强化学习模型): {overall_avg['grpo_avg_score']:.2f}")
         
         print(f"\n评测结果已保存到: {OUTPUT_CSV_PATH}")
     else:
