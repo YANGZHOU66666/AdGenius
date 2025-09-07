@@ -23,9 +23,9 @@ from judge_prompts import (
 SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY")
 
 # 输入和输出文件名
-EVALUATION_CSV_PATH = "results/Qwen2_5_7B_all_results.csv"
+EVALUATION_CSV_PATH = "results/Qwen3_4B_all_results.csv"
 VAL_DATASET_JSONL_PATH = "data/val_dataset_final.jsonl"
-OUTPUT_CSV_PATH = "results/judge_results_Qwen2_5_7B_all.csv"
+OUTPUT_CSV_PATH = "results/judge_results_Qwen3_4B_all.csv"
 
 # 硅基流动平台上的模型名称
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"
